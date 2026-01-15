@@ -40,7 +40,8 @@ spec:
       script: |
         #!/bin/sh
         ls -al /workspace/output/
-        export PATH=${PATH}:$(workspaces.output.path)
+        export PATH=${PATH}:$(workspaces.binaries.path)
+        echo $PATH
         roxctl version
         oc version
 #        ./roxctl-scan.sh $(params.namespace) $(params.image) > $(params.output-file)
