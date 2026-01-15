@@ -1,0 +1,75 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: rhacs
+  namespace: default
+spec:
+  tasks:
+    - name: git-clone
+      params:
+        - name: CRT_FILENAME
+          value: ca-bundle.crt
+        - name: HTTP_PROXY
+          value: ''
+        - name: HTTPS_PROXY
+          value: ''
+        - name: NO_PROXY
+          value: ''
+        - name: SUBDIRECTORY
+          value: ''
+        - name: USER_HOME
+          value: /home/git
+        - name: DELETE_EXISTING
+          value: 'true'
+        - name: VERBOSE
+          value: 'false'
+        - name: SSL_VERIFY
+          value: 'true'
+        - name: URL
+          value: https://github.com/mgoerens/dev-tekton
+        - name: REVISION
+          value: main
+        - name: REFSPEC
+          value: ''
+        - name: SUBMODULES
+          value: 'true'
+        - name: DEPTH
+          value: '1'
+        - name: SPARSE_CHECKOUT_DIRECTORIES
+          value: ''
+      taskRef:
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: git-clone
+          - name: namespace
+            value: default
+        resolver: cluster
+      workspaces:
+        - name: output
+          workspace: repository
+    - name: run-roxctl-scan
+      params:
+        - name: namespace
+          value: mycentral
+        - name: image
+          value: registry.redhat.io/rhel9/python-312
+        - name: output-file
+          value: output_p312.json
+      runAfter:
+        - git-clone
+      taskRef:
+        kind: Task
+        name: run-roxctl-scan
+      workspaces:
+        - name: output
+          workspace: repository
+        - name: binaries
+          workspace: bin
+  workspaces:
+    - name: repository
+    - name: bin
+  params: []
+  finally: []
+
