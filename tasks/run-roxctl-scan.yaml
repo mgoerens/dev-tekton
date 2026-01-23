@@ -39,7 +39,7 @@ spec:
       name: run-roxctl-scan
       script: |
         #!/bin/sh
-        ls -al /workspace/output/
+        microdnf install jq
         export PATH=${PATH}:$(workspaces.binaries.path)
         echo $PATH
         roxctl version
