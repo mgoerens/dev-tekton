@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mycentral
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rhacs-scan-sa
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: rhacs-scan-runner
+  namespace: mycentral
+rules:
+  # Manage RHACS Central custom resource
+  - apiGroups: ["platform.stackrox.io"]
+    resources: ["centrals"]
+    verbs: ["create", "get", "list", "watch", "update", "patch"]
+
+  # Read pods to wait for Central readiness
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+
+  # Read secrets to fetch Central admin password
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["central-htpasswd"]
+    verbs: ["get"]
+
+  # Read OpenShift Route to obtain Central endpoint
+  - apiGroups: ["route.openshift.io"]
+    resources: ["routes"]
+    resourceNames: ["central"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: rhacs-scan-runner-binding
+  namespace: mycentral
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rhacs-scan-runner
+subjects:
+  - kind: ServiceAccount
+    name: rhacs-scan-sa
+    namespace: default
+---
+# Narrow read access to the cluster pull secret in openshift-config
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: read-cluster-pull-secret
+  namespace: openshift-config
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["pull-secret"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: read-cluster-pull-secret-binding
+  namespace: openshift-config
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: read-cluster-pull-secret
+subjects:
+  - kind: ServiceAccount
+    name: rhacs-scan-sa
+    namespace: default
+

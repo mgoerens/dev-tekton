@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# This script deploys an RHACS Central CR into the specified namespace,
+# This script deploys an RHACS Central CR into an existing namespace,
 # obtains the admin password for the deployed Central instance, and then
 # queries the scanner to scan the specified test image.
 #
@@ -7,11 +7,12 @@
 # roxctl-scan.sh <namespace> <test-image>
 # 
 # Example:
-# roxctl-scan.sh my-test-ns quay.io/opdev/preflight:stable > output.json
+# roxctl-scan.sh mycentral quay.io/opdev/preflight:stable > output.json
 # 
 # Prerequisites:
-# - OpenShift cluster in current oc/kubectl context, with permissions to
-#   deploy in the specified namespace
+# - OpenShift cluster in current oc/kubectl context
+# - Target namespace (e.g., "mycentral") must already exist; this script does
+#   not create or delete namespaces
 # - RHACS operator deployed in the OpenShift cluster
 # - Image pull secret for registry.redhat.io to be present in the `pull-secret` secret in `openshift-config` namespace
 # - `roxctl` CLI present and executable in the PATH
@@ -28,7 +29,6 @@ run_scan() {
 
 namespace="${1}"
 image="${2}"
->&2 oc create namespace "${namespace}"
 printf "%s" "${central_resource}" | >&2 oc apply -n "${namespace}" -f -
 
 # Wait for Central instance to be ready
@@ -71,4 +71,3 @@ until run_scan; do
     sleep 60
 done
 
->&2 oc delete namespace "${namespace}"
