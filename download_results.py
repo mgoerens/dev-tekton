@@ -61,7 +61,7 @@ def get_latest_pipelinerun(oc_cmd: list[str], namespace: str, pipeline_name: str
     items = data.get("items") or []
     if not items:
         raise RuntimeError(
-            f"No PipelineRun found for pipeline {pipeline_name!r} in namespace {namespace!r}"
+            f"No PipelineRun found for pipeline '{pipeline_name}' in namespace '{namespace}'"
         )
     # Sort by creation timestamp, newest first
     items.sort(
@@ -277,16 +277,20 @@ def main() -> int:
     try:
         if args.pipelinerun:
             pipelinerun_name = args.pipelinerun
+            print(f"Using PipelineRun '{pipelinerun_name}'", file=sys.stderr)
         else:
+            print(f"Looking up latest PipelineRun for pipeline '{args.pipeline}'...", file=sys.stderr)
             pipelinerun_name = get_latest_pipelinerun(
                 oc_cmd, args.namespace, args.pipeline
             )
-            print(f"Latest PipelineRun for pipeline {args.pipeline!r}: {pipelinerun_name}", file=sys.stderr)
+            print(f"Latest PipelineRun: {pipelinerun_name}", file=sys.stderr)
 
+        print(f"Looking up PVC and output file path from PipelineRun '{pipelinerun_name}'...", file=sys.stderr)
         pvc_name, output_file_path = get_output_pvc_and_file_path_from_pipelinerun(
             oc_cmd, args.namespace, pipelinerun_name
         )
         output_file_basename = os.path.basename(output_file_path)
+        print(f"Found PVC '{pvc_name}', output file '{output_file_basename}'", file=sys.stderr)
 
         # Sanitize pipelinerun name for use in pod name (RFC 1123: lowercase, alphanumeric, hyphens)
         suffix = re.sub(r"[^a-z0-9-]", "-", pipelinerun_name.lower())
@@ -294,15 +298,19 @@ def main() -> int:
         pod_name = f"download-results-{suffix}"
 
         try:
+            print(f"Creating temporary pod '{pod_name}'...", file=sys.stderr)
             create_fetch_pod(oc_cmd, args.namespace, pvc_name, pod_name)
+            print("Waiting for pod to be ready...", file=sys.stderr)
             wait_pod_ready(oc_cmd, args.namespace, pod_name)
             remote_path = f"/workspaces/output/{output_file_basename}"
             local_path = args.output or output_file_basename
+            print(f"Copying file to '{local_path}'...", file=sys.stderr)
             copy_file_from_pod(
                 oc_cmd, args.namespace, pod_name, remote_path, local_path
             )
             print(f"Downloaded to {local_path}", file=sys.stderr)
         finally:
+            print(f"Deleting temporary pod '{pod_name}'...", file=sys.stderr)
             delete_pod(oc_cmd, args.namespace, pod_name)
 
         return 0
