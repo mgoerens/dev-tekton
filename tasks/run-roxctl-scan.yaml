@@ -11,6 +11,9 @@ spec:
       type: string
     - name: output-file
       type: string
+  results:
+    - name: output-file-path
+      description: Absolute path to the scan output file in the task pod (for kubectl cp).
   stepTemplate:
     securityContext:
       runAsNonRoot: false
@@ -45,6 +48,7 @@ spec:
         roxctl version
         oc version
         ./roxctl-scan.sh $(params.namespace) $(params.image) > $(params.output-file)
+        echo -n "$(workspaces.output.path)/$(params.output-file)" > $(results.output-file-path.path)
       workingDir: $(workspaces.output.path)
   workspaces:
     - description: |
