@@ -177,7 +177,7 @@ def create_fetch_pod(
             "containers": [
                 {
                     "name": "fetch",
-                    "image": "registry.access.redhat.com/ubi8/ubi-minimal",
+                    "image": "alpine",
                     "command": ["sleep", "300"],
                     "volumeMounts": [
                         {"name": "output", "mountPath": "/workspaces/output"}
