@@ -22,7 +22,7 @@ tkn pipeline start rhacs \
   -s rhacs-scan-sa \
   -w name=repository,volumeClaimTemplateFile=./pvc-template.yaml \
   -w name=bin,volumeClaimTemplateFile=./pvc-template.yaml \
-  --timeout 1h \
+  --pipeline-timeout 1h \
   --showlog
 ```
 
