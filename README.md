@@ -17,7 +17,7 @@ The RBAC includes the ServiceAccount `rhacs-scan-sa` in the `default` namespace 
 > **Note:** You may need to disable the Tekton [Affinity Assistant](https://tekton.dev/docs/pipelines/affinityassistants/) to run this pipeline, since it uses two workspaces.
 >
 > ```sh
-> oc patch configmap feature-flags -n openshift-pipelines --type=merge -p '{"data":{"coschedule":"false","disable-affinity-assistant":"true"}}'
+> oc patch configmap feature-flags -n openshift-pipelines --type=merge -p '{"data":{"coschedule":"disabled","disable-affinity-assistant":"true"}}'
 > ```
 
 Create the workspaces using dynamic PVCs (template provided in this repo as `pvc-template.yaml`) and start the Pipeline:
