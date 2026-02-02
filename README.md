@@ -14,12 +14,19 @@ The RBAC includes the ServiceAccount `rhacs-scan-sa` in the `default` namespace 
 
 ### Run the rhacs Pipeline using tkn
 
+> **Note:** You may need to disable the Tekton [Affinity Assistant](https://tekton.dev/docs/pipelines/affinityassistants/) to run this pipeline, since it uses two workspaces.
+>
+> ```sh
+> oc patch configmap feature-flags -n openshift-pipelines --type=merge -p '{"data":{"coschedule":"false","disable-affinity-assistant":"true"}}'
+> ```
+
 Create the workspaces using dynamic PVCs (template provided in this repo as `pvc-template.yaml`) and start the Pipeline:
 
 ```bash
 tkn pipeline start rhacs \
   -n default \
   -s rhacs-scan-sa \
+  --param image=registry.redhat.io/rhel9/python-312:9.6 \
   -w name=repository,volumeClaimTemplateFile=./pvc-template.yaml \
   -w name=bin,volumeClaimTemplateFile=./pvc-template.yaml \
   --pipeline-timeout 1h \
@@ -73,6 +80,15 @@ Apply and view logs:
 ```bash
 oc apply -f run-rhacs-pr.yaml -n default
 tkn pipelinerun logs -f rhacs-cli -n default
+```
+
+
+### Download scanner's results
+
+Run this script locally to download the result of the scan
+
+```bash
+python download_results.py --pipeline rhacs
 ```
 
 ### Cleanup
