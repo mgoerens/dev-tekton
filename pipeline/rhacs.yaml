@@ -52,11 +52,9 @@ spec:
     - name: run-roxctl-scan
       params:
         - name: namespace
-          value: mycentral
+          value: $(params.namespace)
         - name: image
-          value: registry.redhat.io/rhel9/python-312
-        - name: output-file
-          value: output_p312.json
+          value: $(params.image)
       runAfter:
         - git-clone
       taskRef:
@@ -70,6 +68,11 @@ spec:
   workspaces:
     - name: repository
     - name: bin
-  params: []
+  params:
+    - name: namespace
+      type: string
+      default: mycentral
+    - name: image
+      type: string
   finally: []
 

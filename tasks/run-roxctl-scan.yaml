@@ -9,8 +9,6 @@ spec:
       type: string
     - name: image
       type: string
-    - name: output-file
-      type: string
   results:
     - name: output-file-path
       description: Absolute path to the scan output file in the task pod (for kubectl cp).
@@ -47,8 +45,11 @@ spec:
         echo $PATH
         roxctl version
         oc version
-        ./roxctl-scan.sh $(params.namespace) $(params.image) > $(params.output-file)
-        echo -n "$(workspaces.output.path)/$(params.output-file)" > $(results.output-file-path.path)
+        IMAGE="$(params.image)"
+        SANITIZED=$(echo "$IMAGE" | tr '/:.' '_')
+        OUTPUT_FILE="results_${SANITIZED}_$(date -u +%Y%m%d-%H%M%S).json"
+        ./roxctl-scan.sh $(params.namespace) $(params.image) > "$OUTPUT_FILE"
+        echo -n "$(workspaces.output.path)/$OUTPUT_FILE" > $(results.output-file-path.path)
       workingDir: $(workspaces.output.path)
   workspaces:
     - description: |
