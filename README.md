@@ -27,6 +27,7 @@ tkn pipeline start rhacs \
   -n default \
   -s rhacs-scan-sa \
   --param image=registry.redhat.io/rhel9/python-312:9.6 \
+  --param namespace=mycentral \
   -w name=repository,volumeClaimTemplateFile=./pvc-template.yaml \
   -w name=bin,volumeClaimTemplateFile=./pvc-template.yaml \
   --pipeline-timeout 1h \
@@ -50,6 +51,11 @@ metadata:
 spec:
   pipelineRef:
     name: rhacs
+  params:
+    - name: image
+      value: registry.redhat.io/rhel9/python-312:9.6
+    - name: namespace
+      value: mycentral
   taskRunTemplate:
     serviceAccountName: rhacs-scan-sa
   timeouts:
